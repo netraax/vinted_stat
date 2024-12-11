@@ -1,0 +1,20 @@
+{
+  "name": "vinted_stat",
+  "version": "1.0.0",
+  "description": "Dashboard for Vinted statistics analysis",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["vinted", "statistics", "dashboard"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^4.4.1",
+    "bootstrap": "^5.3.2"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
