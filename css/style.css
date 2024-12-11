@@ -1,0 +1,49 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: #333;
+    font-weight: 600;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.gradient-text {
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    border: none;
+    padding: 10px 20px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #1c7a94, #5bc0db);
+}
+
+#dashboard {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#dashboard.visible {
+    opacity: 1;
+}
