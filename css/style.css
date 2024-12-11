@@ -1,49 +1,190 @@
+/* Variables globales */
+:root {
+    --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --secondary-gradient: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+    --text-dark: #2c3e50;
+    --text-light: #95a5a6;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
+/* Styles généraux */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8f9fa;
-    padding: 20px;
+    color: var(--text-dark);
+    line-height: 1.6;
 }
 
+/* Texte gradient */
+.gradient-text {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+/* Cartes */
 .card {
     border: none;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+    transition: transform var(--transition-speed);
+    background: white;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 .card-title {
-    color: #333;
+    color: var(--text-dark);
     font-weight: 600;
+    margin-bottom: 1rem;
 }
 
+/* Zone de saisie */
+#inputData {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.9rem;
+    transition: border-color var(--transition-speed);
+    resize: vertical;
+}
+
+#inputData:focus {
+    border-color: #2575fc;
+    box-shadow: none;
+    outline: none;
+}
+
+/* Bouton d'analyse */
+.btn-primary {
+    background: var(--primary-gradient);
+    border: none;
+    border-radius: 10px;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    transition: transform var(--transition-speed);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    background: var(--secondary-gradient);
+}
+
+/* Container des graphiques */
 .chart-container {
     position: relative;
     height: 300px;
     width: 100%;
-    margin: 20px 0;
+    margin: 1rem 0;
 }
 
-.gradient-text {
-    background: linear-gradient(45deg, #2193b0, #6dd5ed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* Onglets */
+.nav-tabs {
+    border-bottom: 2px solid #e9ecef;
 }
 
-.btn-primary {
-    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+.nav-tabs .nav-link {
     border: none;
-    padding: 10px 20px;
+    color: var(--text-light);
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+    transition: all var(--transition-speed);
 }
 
-.btn-primary:hover {
-    background: linear-gradient(45deg, #1c7a94, #5bc0db);
+.nav-tabs .nav-link:hover {
+    border: none;
+    color: #2575fc;
 }
 
+.nav-tabs .nav-link.active {
+    border: none;
+    color: #6a11cb;
+    position: relative;
+}
+
+.nav-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-gradient);
+}
+
+/* Animations */
 #dashboard {
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity var(--transition-speed);
 }
 
 #dashboard.visible {
     opacity: 1;
+}
+
+/* Stats cards */
+.stat-card {
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 1.8rem;
+    margin: 0.5rem 0;
+}
+
+.stat-card p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Loading state */
+.loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #6a11cb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
