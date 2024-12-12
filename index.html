@@ -144,119 +144,28 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fonctions de parsing des données
-        function parseVintedData(text) {
-            return {
-                profile: extractProfileInfo(text),
-                sales: extractSalesInfo(text),
-                comments: extractComments(text),
-                articles: extractArticles(text)
-            };
-        }
-
-        function extractProfileInfo(text) {
-            return {
-                username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/),
-                location: extractPattern(text, /À propos :\n(.*?),\sFrance/),
-                followers: parseInt(extractPattern(text, /(\d+)\nAbonnés/) || '0'),
-                evaluations: parseInt(extractPattern(text, /\((\d+)\)\nÉvaluations/) || '0')
-            };
-        }
-
-        function extractSalesInfo(text) {
-            const totalEvaluations = parseInt(extractPattern(text, /\((\d+)\)\nÉvaluations/) || '0');
-            return {
-                totalSales: Math.floor(totalEvaluations * 0.9) // -10% règle
-            };
-        }
-
-        function extractComments(text) {
-            const commentRegex = /([a-zA-Z0-9_]+)\nil y a (.*?)\n(.*?)\n/g;
-            const comments = [];
-            let match;
-            while ((match = commentRegex.exec(text)) !== null) {
-                comments.push({
-                    username: match[1],
-                    timestamp: match[2],
-                    content: match[3]
-                });
-            }
-            return comments;
-        }
-
-        function extractArticles(text) {
-            const articleRegex = /(.*?), prix : (\d+,\d+) €, marque : (.*?), taille/g;
-            const articles = [];
-            let match;
-            while ((match = articleRegex.exec(text)) !== null) {
-                articles.push({
-                    name: match[1].trim(),
-                    price: parseFloat(match[2].replace(',', '.')),
-                    brand: match[3] !== 'Marque non spécifiée' ? match[3] : 'Autre'
-                });
-            }
-            return articles;
-        }
-
-        function extractPattern(text, pattern) {
-            const match = text.match(pattern);
-            return match ? match[1] : null;
-        }
-
-        // Mise à jour du tableau de bord
-        function updateDashboard(data) {
-            console.log("Mise à jour du dashboard avec:", data);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM chargé");
             
-            // Mise à jour des statistiques principales
-            document.getElementById('totalSales').textContent = data.sales.totalSales;
-            updateCharts(data);
-        }
-
-        // Gestion des graphiques
-        function updateCharts(data) {
-            // Graphique des ventes
-            const salesCtx = document.getElementById('salesChart').getContext('2d');
-            new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
-                    datasets: [{
-                        label: 'Ventes',
-                        data: [12, 19, 3, 5, 2, 3],
-                        borderColor: '#6a11cb',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Application initialisée");
             const analyzeBtn = document.getElementById('analyzeBtn');
             const inputData = document.getElementById('inputData');
             const dashboard = document.getElementById('dashboard');
 
-            analyzeBtn.addEventListener('click', () => {
+            analyzeBtn.addEventListener('click', function() {
                 console.log("Bouton cliqué");
-                const rawData = inputData.value.trim();
-                if (!rawData) {
-                    alert('Veuillez entrer des données à analyser');
-                    return;
-                }
+                
+                const rawData = inputData.value;
+                console.log("Données brutes:", rawData);
 
+                // Test simple de parsing
                 try {
-                    const parsedData = parseVintedData(rawData);
-                    console.log("Données parsées:", parsedData);
-                    updateDashboard(parsedData);
-                    dashboard.style.display = 'block';
+                    // Test de base
+                    if (rawData.includes("Vinted")) {
+                        console.log("Texte Vinted détecté");
+                        dashboard.style.display = 'block';
+                    }
                 } catch (error) {
-                    console.error('Erreur lors de l'analyse:', error);
-                    alert('Une erreur est survenue lors de l'analyse');
+                    console.error("Erreur:", error);
                 }
             });
         });
