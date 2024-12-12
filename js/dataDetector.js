@@ -1,5 +1,4 @@
 // Fonctions d'extraction des données
-
 function extractNumber(text, pattern) {
     const match = text.match(pattern);
     return match ? parseInt(match[1].replace(/\s/g, ''), 10) : 0;
@@ -30,7 +29,6 @@ function extractProfileInfo(text) {
 
 // Extraction des informations de vente
 function extractSalesInfo(text) {
-    // Puisque les "Évaluations" ne sont pas présentes, utilisons "Abonnés" comme estimation
     const followers = extractNumber(text, /(\d+)\nAbonnés/);
     return {
         totalSales: Math.floor(followers * 0.9), // Estimation basée sur les abonnés
@@ -46,31 +44,48 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-    const articleRegex = /(.*?)#\s(.*?)#,\sprix\s:\s([\d,]+)\s€,\smarque\s:\s(.*?),\staille\s:\s(.*?)\nEnlevé !\n(.*?)\n\nTrès bon état\n\n([\d,]+)\s€/g;
+    const articleRegex = /(.*?)#\s(.*?)#,\sprix\s:\s([\d,]+)\s€,\smarque\s:\s(.*?),\staille\s:\s(.*?)\nEnlevé\s!\n(.*?)\n\nTrès\sbon\sétat/g;
     const articles = [];
     let match;
 
     while ((match = articleRegex.exec(text)) !== null) {
+        console.log("Prix capturé :", match[3]); // Log pour vérifier les prix
         articles.push({
             category: match[1].trim(),
             name: match[2].trim(),
-            price: parseFloat(match[3].replace(',', '.')),
+            price: parseFloat(match[3].replace(',', '.')), // Convertir le prix
             brand: match[4] !== 'Marque non spécifiée' ? match[4].trim() : 'Autre',
             size: match[5].trim(),
             fullName: match[6].trim(),
-            // "Vues" et "Favoris" ne sont pas présents, on les initialise à 0
-            views: 0,
-            favorites: 0
+            views: 0, // Toujours 0, car absent dans le texte
+            favorites: 0 // Toujours 0, car absent dans le texte
         });
     }
 
+    console.log("Articles extraits :", articles); // Vérifiez ici si les articles sont bien extraits
     return articles;
 }
 
 // Calcul des statistiques
 function calculateStatistics(text) {
     const articles = extractArticles(text);
-    // Comme il n'y a pas de commentaires, on ignore cette partie
+
+    // Vérifiez s'il y a des articles valides
+    if (articles.length === 0) {
+        console.log("Aucun article trouvé.");
+        return {
+            financials: {
+                averagePrice: 0,
+                estimatedRevenue: 0
+            },
+            engagement: {
+                views: 0,
+                favorites: 0,
+                engagementRate: 0
+            },
+            geography: {}
+        };
+    }
 
     // Calcul du prix moyen
     const totalPrices = articles.reduce((sum, article) => sum + (article.price || 0), 0);
@@ -80,25 +95,17 @@ function calculateStatistics(text) {
     const totalSales = extractSalesInfo(text).totalSales;
     const estimatedRevenue = averagePrice * totalSales;
 
-    // Données d'engagement par défaut
-    const totalViews = 0;
-    const totalFavorites = 0;
-    const engagementRate = 0;
-
-    // Pas de commentaires, donc pas de répartition géographique
-    const salesByCountry = {};
-
     return {
         financials: {
-            averagePrice: averagePrice.toFixed(2),
+            averagePrice: averagePrice.toFixed(2), // Deux décimales
             estimatedRevenue: estimatedRevenue.toFixed(2)
         },
         engagement: {
-            views: totalViews,
-            favorites: totalFavorites,
-            engagementRate: engagementRate.toFixed(2)
+            views: 0, // Toujours 0, car non disponible
+            favorites: 0,
+            engagementRate: 0
         },
-        geography: salesByCountry
+        geography: {}
     };
 }
 
