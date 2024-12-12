@@ -87,6 +87,7 @@ function extractArticles(text) {
 // Calcul des statistiques
 function calculateStatistics(text) {
     const articles = extractArticles(text);
+    const comments = extractComments(text); // Ajout de cette ligne !
     const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
     const sales = Math.floor(evaluations * 0.9);
 
