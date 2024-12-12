@@ -54,41 +54,56 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-    // Modification du pattern pour matcher le format exact
-    const articleRegex = /.*?, prix : (\d+,\d+) €, marque : (.*?)(?:, taille|\n)/g;
+    const articleRegex = /(.*?), prix : (\d+,\d+) €, marque : (.*?), taille[\s\S]*?Vues : (\d+), Favoris : (\d+)/g;
     const articles = [];
     let match;
 
     while ((match = articleRegex.exec(text)) !== null) {
         articles.push({
-            price: parseFloat(match[1].replace(',', '.')),
-            brand: match[2].trim()
+            name: match[1].trim(),
+            price: parseFloat(match[2].replace(',', '.')),
+            brand: match[3] !== 'Marque non spécifiée' ? match[3] : 'Autre',
+            views: parseInt(match[4]),
+            favorites: parseInt(match[5])
         });
     }
 
-    console.log("Articles extraits:", articles); // Debug
     return articles;
 }
 
 // Calcul des statistiques
 function calculateStatistics(text) {
     const articles = extractArticles(text);
-    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
-    const sales = Math.floor(evaluations * 0.9);
+    const comments = extractComments(text);
 
-    let averagePrice = 0;
-    if (articles.length > 0) {
-        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
-        averagePrice = totalPrice / articles.length;
-    }
+    // Calcul du chiffre d'affaires estimé
+    const averagePrice = articles.reduce((sum, article) => sum + article.price, 0) / articles.length;
+    const totalSales = Math.floor(extractNumber(text, /\((\d+)\)\nÉvaluations/) * 0.9);
+    const estimatedRevenue = averagePrice * totalSales;
 
-    const estimatedRevenue = averagePrice * sales;
+    // Calcul du taux d'engagement
+    const totalViews = articles.reduce((sum, article) => sum + article.views, 0);
+    const totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+    const engagementRate = (totalFavorites / totalViews) * 100;
+
+    // Répartition géographique des ventes
+    const salesByCountry = comments.reduce((acc, comment) => {
+        const country = getCountryFromLanguage(comment.language);
+        acc[country] = (acc[country] || 0) + 1;
+        return acc;
+    }, {});
 
     return {
         financials: {
-            averagePrice: averagePrice || 0,
-            estimatedRevenue: estimatedRevenue || 0
-        }
+            averagePrice,
+            estimatedRevenue
+        },
+        engagement: {
+            views: totalViews,
+            favorites: totalFavorites,
+            engagementRate
+        },
+        geography: salesByCountry
     };
 }
 
