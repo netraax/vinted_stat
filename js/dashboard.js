@@ -10,6 +10,15 @@ function updateDashboard(data) {
     
     // Mise à jour des stats d'engagement
     updateEngagementStats(data);
+
+    // Mise à jour des graphiques
+    if (window.updateCharts) {
+        try {
+            window.updateCharts(data);
+        } catch (error) {
+            console.error("Erreur mise à jour graphiques:", error);
+        }
+    }
 }
 
 // Mise à jour des statistiques de base
@@ -76,10 +85,14 @@ function initDashboard() {
         const text = input.value;
         if(text.length > 0) {
             console.log("Analyse des données...");
-            const stats = analyzeData(text);
-            console.log("Statistiques complètes:", stats);
-            updateDashboard(stats);
-            dash.style.display = 'block';
+            try {
+                const stats = analyzeData(text);
+                console.log("Statistiques complètes:", stats);
+                updateDashboard(stats);
+                dash.style.display = 'block';
+            } catch (error) {
+                console.error("Erreur lors de l'analyse:", error);
+            }
         } else {
             alert('Veuillez entrer des données à analyser');
         }
