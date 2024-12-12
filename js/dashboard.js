@@ -5,6 +5,7 @@ function updateDashboard(data) {
     // Vérifiez que les données sont valides avant de les utiliser
     if (!data || !data.statistics || !data.profile || !data.sales) {
         console.error("Données invalides pour le dashboard:", data);
+        alert("Les données fournies pour le tableau de bord sont invalides.");
         return;
     }
 
@@ -37,6 +38,8 @@ function updateBaseStats(data) {
         // Ajout du username et de la localisation
         document.getElementById('username').textContent = data.profile?.username || "-";
         document.getElementById('location').textContent = data.profile?.location || "-";
+
+        console.log("Mise à jour des stats de base réussie.");
     } catch (error) {
         console.error("Erreur mise à jour des stats de base:", error);
     }
@@ -54,6 +57,8 @@ function updateFinancialStats(data) {
         // Chiffre d'affaires estimé
         document.getElementById('estimatedRevenue').textContent = 
             formatCurrency(stats.estimatedRevenue || 0);
+
+        console.log("Mise à jour des stats financières réussie.");
     } catch (error) {
         console.error("Erreur mise à jour des stats financières:", error);
     }
@@ -68,6 +73,8 @@ function updateEngagementStats(data) {
         document.getElementById('totalFavorites').textContent = stats.favorites || 0;
         document.getElementById('engagementRate').textContent = 
             formatPercent(stats.engagementRate || 0);
+
+        console.log("Mise à jour des stats d'engagement réussie.");
     } catch (error) {
         console.error("Erreur mise à jour des stats d'engagement:", error);
     }
@@ -98,7 +105,7 @@ function initDashboard() {
     const dash = document.getElementById('dashboard');
 
     btn.onclick = function() {
-        const text = input.value;
+        const text = input.value.trim();
         if (text.length > 0) {
             console.log("Analyse des données...");
             try {
@@ -111,7 +118,7 @@ function initDashboard() {
                 alert("Une erreur s'est produite lors de l'analyse des données. Veuillez vérifier le format des données.");
             }
         } else {
-            alert('Veuillez entrer des données à analyser');
+            alert('Veuillez entrer des données à analyser.');
         }
     };
 }
