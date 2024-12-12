@@ -1,64 +1,101 @@
 // Mise à jour du tableau de bord
 function updateDashboard(data) {
     console.log("Données pour le dashboard:", data);
-    
+
+    // Vérifiez que les données sont valides avant de les utiliser
+    if (!data || !data.statistics || !data.profile || !data.sales) {
+        console.error("Données invalides pour le dashboard:", data);
+        alert("Les données fournies pour le tableau de bord sont invalides.");
+        return;
+    }
+
     // Mise à jour des statistiques de base
     updateBaseStats(data);
-    
+
     // Mise à jour des stats financières
     updateFinancialStats(data);
-    
-    // Mise à jour des stats de vente
-    updateSalesStats(data);
+
+    // Mise à jour des stats d'engagement
+    updateEngagementStats(data);
+
+    // Mise à jour des graphiques
+    if (window.updateCharts) {
+        try {
+            window.updateCharts(data);
+        } catch (error) {
+            console.error("Erreur mise à jour graphiques:", error);
+        }
+    }
 }
 
 // Mise à jour des statistiques de base
 function updateBaseStats(data) {
-    document.getElementById('salesCount').textContent = data.sales.totalSales;
-    document.getElementById('evaluations').textContent = data.profile.evaluations;
-    document.getElementById('followers').textContent = data.profile.followers;
-    
-    // Ajout du username et de la localisation
-    if (data.profile.username) {
-        document.getElementById('username').textContent = data.profile.username;
-    }
-    document.getElementById('location').textContent = 'France';
+    try {
+        document.getElementById('salesCount').textContent = data.sales?.totalSales || 0;
+        document.getElementById('evaluations').textContent = data.profile?.evaluations || 0;
+        document.getElementById('followers').textContent = data.profile?.followers || 0;
 
-    // Affichage de la note avec étoiles
-    if (data.profile.rating) {
-        document.getElementById('rating').innerHTML = displayRating(data.profile.rating);
+        // Ajout du username et de la localisation
+        document.getElementById('username').textContent = data.profile?.username || "-";
+        document.getElementById('location').textContent = data.profile?.location || "-";
+
+        console.log("Mise à jour des stats de base réussie.");
+    } catch (error) {
+        console.error("Erreur mise à jour des stats de base:", error);
     }
 }
 
 // Mise à jour des stats financières
 function updateFinancialStats(data) {
-    const stats = data.statistics.financials;
-    
-    // Prix moyen et chiffre d'affaires actuel
-    document.getElementById('averagePrice').textContent = formatCurrency(stats.averagePrice);
-    document.getElementById('estimatedRevenue').textContent = formatCurrency(stats.estimatedRevenue);
-    
-    // Projection annuelle
-    document.getElementById('annualProjectedRevenue').textContent = formatCurrency(stats.annualProjectedRevenue);
+    try {
+        const stats = data.statistics?.financials || {};
+
+        // Prix moyen
+        document.getElementById('averagePrice').textContent = 
+            formatCurrency(stats.averagePrice || 0);
+
+        // Chiffre d'affaires estimé
+        document.getElementById('estimatedRevenue').textContent = 
+            formatCurrency(stats.estimatedRevenue || 0);
+
+        console.log("Mise à jour des stats financières réussie.");
+    } catch (error) {
+        console.error("Erreur mise à jour des stats financières:", error);
+    }
 }
 
-// Mise à jour des stats de vente
-function updateSalesStats(data) {
-    const stats = data.statistics.salesMetrics;
-    
-    // Moyennes de ventes
-    document.getElementById('monthlyAverageSales').textContent = 
-        Math.round(stats.monthlyAverageSales * 10) / 10;
-    document.getElementById('dailyAverageSales').textContent = 
-        Math.round(stats.dailyAverageSales * 10) / 10;
+// Mise à jour des stats d'engagement
+function updateEngagementStats(data) {
+    try {
+        const stats = data.statistics?.engagement || {};
+
+        document.getElementById('totalViews').textContent = stats.views || 0;
+        document.getElementById('totalFavorites').textContent = stats.favorites || 0;
+        document.getElementById('engagementRate').textContent = 
+            formatPercent(stats.engagementRate || 0);
+
+        console.log("Mise à jour des stats d'engagement réussie.");
+    } catch (error) {
+        console.error("Erreur mise à jour des stats d'engagement:", error);
+    }
 }
 
 // Fonctions utilitaires de formatage
 function formatCurrency(amount) {
+    if (isNaN(amount)) return "€ 0,00";
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
         currency: 'EUR'
     }).format(amount);
+}
+
+function formatPercent(value) {
+    if (isNaN(value)) return "0%";
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'percent',
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    }).format(value / 100);
 }
 
 // Initialisation du tableau de bord
@@ -68,8 +105,8 @@ function initDashboard() {
     const dash = document.getElementById('dashboard');
 
     btn.onclick = function() {
-        const text = input.value;
-        if(text.length > 0) {
+        const text = input.value.trim();
+        if (text.length > 0) {
             console.log("Analyse des données...");
             try {
                 const stats = analyzeData(text);
@@ -81,7 +118,7 @@ function initDashboard() {
                 alert("Une erreur s'est produite lors de l'analyse des données. Veuillez vérifier le format des données.");
             }
         } else {
-            alert('Veuillez entrer des données à analyser');
+            alert('Veuillez entrer des données à analyser.');
         }
     };
 }
