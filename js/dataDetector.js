@@ -18,11 +18,13 @@ function analyzeData(text) {
 
 // Extraction des informations du profil
 function extractProfileInfo(text) {
+   const rating = extractPattern(text, /\n(\d\.\d)\n/); // Extraction de la note
    return {
        username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/),
-       location: extractPattern(text, /À propos :\n(.*?),\sFrance/),
+       location: 'France', // Toujours afficher France
        followers: extractNumber(text, /(\d+)\nAbonnés/),
-       evaluations: extractNumber(text, /\((\d+)\)\nÉvaluations/)
+       evaluations: extractNumber(text, /\((\d+)\)\nÉvaluations/),
+       rating: rating ? parseFloat(rating) : null
    };
 }
 
@@ -56,17 +58,15 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-   // Pattern modifié pour extraire les marques, vues et favoris
-   const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille[\s\S]*?(\d+) vues[\s\S]*?(\d+) favoris/g;
+   // Pattern modifié pour se baser sur "prix :" jusqu'à "taille"
+   const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille/g;
    const articles = [];
    let match;
 
    while ((match = articlePattern.exec(text)) !== null) {
        articles.push({
            price: parseFloat(match[1].replace(',', '.')),
-           brand: match[2].trim(),  // Extraction de la marque
-           views: parseInt(match[3]),
-           favorites: parseInt(match[4])
+           brand: match[2].trim()
        });
    }
 
@@ -81,7 +81,6 @@ function calculateStatistics(text) {
    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
    const sales = Math.floor(evaluations * 0.9);
 
-   // Calcul du prix moyen et des totaux
    let averagePrice = 0;
    let totalViews = 0;
    let totalFavorites = 0;
@@ -89,14 +88,12 @@ function calculateStatistics(text) {
    if (articles.length > 0) {
        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
        averagePrice = totalPrice / articles.length;
-       totalViews = articles.reduce((sum, article) => sum + article.views, 0);
-       totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+       totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
+       totalFavorites = articles.reduce((sum, article) => sum + (article.favorites || 0), 0);
    }
 
-   // Calcul du taux d'engagement (favoris/vues)
    const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
 
-   // Répartition géographique
    const salesByCountry = comments.reduce((acc, comment) => {
        const country = getCountryFromLanguage(comment.language);
        acc[country] = (acc[country] || 0) + 1;
@@ -130,17 +127,29 @@ function parseDate(timeAgo) {
 
 function detectLanguage(text) {
    const languages = {
-       fr: ['merci', 'bonjour', 'parfait', 'rapide', 'bien', 'reçu', 'conforme'],
-       it: ['perfetto', 'grazie', 'tutto', 'bellissima', 'ottimo'],
-       en: ['perfect', 'thank', 'good', 'great', 'received', 'amazing'],
-       es: ['gracias', 'perfecto', 'bien', 'muy', 'todo', 'mejor']
+       fr: ['merci', 'bonjour', 'parfait', 'rapide', 'bien', 'reçu', 'conforme', 'nickel', 'super', 
+            'génial', 'recommande', 'impeccable', 'top', 'très', 'envoi', 'colis', 'vraiment'],
+       it: ['perfetto', 'grazie', 'tutto', 'bellissima', 'ottimo', 'bello', 'molto', 'piacere', 
+            'bella', 'benissimo', 'ottima', 'grazie mille'],
+       en: ['perfect', 'thank', 'good', 'great', 'received', 'amazing', 'nice', 'well', 'excellent',
+            'awesome', 'brilliant', 'wonderful', 'thanks'],
+       es: ['gracias', 'perfecto', 'bien', 'muy', 'todo', 'mejor', 'excelente', 'bueno', 'genial',
+            'encantado', 'estupendo', 'muchas gracias', 'hola']
    };
 
    text = text.toLowerCase();
+   let maxScore = 0;
+   let detectedLang = 'fr';
+
    for (const [lang, words] of Object.entries(languages)) {
-       if (words.some(word => text.includes(word))) return lang;
+       const score = words.filter(word => text.includes(word)).length;
+       if (score > maxScore) {
+           maxScore = score;
+           detectedLang = lang;
+       }
    }
-   return 'fr'; // par défaut
+
+   return detectedLang;
 }
 
 function getCountryFromLanguage(language) {
@@ -156,4 +165,12 @@ function getCountryFromLanguage(language) {
 function extractPattern(text, pattern) {
    const match = text.match(pattern);
    return match ? match[1] : null;
+}
+
+// Fonction d'affichage des étoiles
+function displayRating(rating) {
+   const fullStar = '★';
+   const emptyStar = '☆';
+   const stars = Math.round(rating);
+   return `${fullStar.repeat(stars)}${emptyStar.repeat(5-stars)} (${rating})`;
 }
