@@ -83,40 +83,35 @@ function extractArticles(text) {
 // Calcul des statistiques
 function calculateStatistics(text) {
     const articles = extractArticles(text);
-    const comments = extractComments(text); // Ajout de cette ligne !
     const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
     const sales = Math.floor(evaluations * 0.9);
 
     let averagePrice = 0;
-    let totalViews = 0;
-    let totalFavorites = 0;
 
     if (articles.length > 0) {
         const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
         averagePrice = totalPrice / articles.length;
-        totalViews = articles.reduce((sum, article) => sum + article.views, 0);
-        totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
     }
 
-    const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
+    // Calculs des moyennes de ventes
+    const monthlyAverageSales = sales / 3;  // Ventes sur 3 mois
+    const dailyAverageSales = sales / 90;   // Ventes sur 90 jours
 
-    const salesByCountry = comments.reduce((acc, comment) => {
-        const country = getCountryFromLanguage(comment.language);
-        acc[country] = (acc[country] || 0) + 1;
-        return acc;
-    }, {});
+    // Calcul des projections financières
+    const estimatedRevenue = averagePrice * sales;
+    const annualProjectedRevenue = estimatedRevenue * (12/3); // Projection sur 12 mois
 
     return {
         financials: {
             averagePrice: averagePrice || 0,
-            estimatedRevenue: (averagePrice * sales) || 0
+            estimatedRevenue: estimatedRevenue || 0,
+            annualProjectedRevenue: annualProjectedRevenue || 0
         },
-        engagement: {
-            views: totalViews,
-            favorites: totalFavorites,
-            engagementRate: engagementRate
-        },
-        geography: salesByCountry
+        salesMetrics: {
+            totalSales: sales,
+            monthlyAverageSales: monthlyAverageSales,
+            dailyAverageSales: dailyAverageSales
+        }
     };
 }
 
