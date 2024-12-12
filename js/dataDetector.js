@@ -56,19 +56,28 @@ function extractComments(text) {
    return comments;
 }
 
-// Extraction des articles
 function extractArticles(text) {
-   // Pattern modifié pour se baser sur "prix :" jusqu'à "taille"
-   const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille/g;
-   const articles = [];
-   let match;
+    // Pattern simplifié : capture uniquement entre "prix :" et "taille"
+    const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille/g;
+    const articles = [];
+    let match;
 
-   while ((match = articlePattern.exec(text)) !== null) {
-       articles.push({
-           price: parseFloat(match[1].replace(',', '.')),
-           brand: match[2].trim()
-       });
-   }
+    while ((match = articlePattern.exec(text)) !== null) {
+        const price = parseFloat(match[1].replace(',', '.'));
+        const brand = match[2].trim();
+        
+        // Vérification pour éviter les valeurs invalides
+        if (!isNaN(price) && brand) {
+            articles.push({
+                price: price,
+                brand: brand
+            });
+        }
+    }
+
+    console.log("Articles extraits (nouveau pattern):", articles);
+    return articles;
+}
 
    console.log("Articles extraits avec marques:", articles); // Debug
    return articles;
