@@ -1,92 +1,80 @@
-// Fonctions d'extraction des données
+// Code de base qui fonctionnait
 function extractNumber(text, pattern) {
     const match = text.match(pattern);
     return match ? parseInt(match[1]) : 0;
 }
 
 function analyzeData(text) {
-    console.log("Analyse du texte brut:", text.substring(0, 200)); // Debug
-    
-    return {
-        profile: extractProfileInfo(text),
-        sales: extractSalesInfo(text),
-        comments: extractComments(text),
-        articles: extractArticles(text),
-        statistics: calculateStatistics(text)
-    };
-}
-
-// Extraction des informations du profil
-function extractProfileInfo(text) {
-    return {
-        username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/) || extractPattern(text, /Utilisateur : (.*)/),
-        location: extractPattern(text, /Localisation : (.*)/),
-        followers: extractNumber(text, /(\d+)\nAbonnés/),
-        evaluations: extractNumber(text, /\((\d+)\)\nÉvaluations/)
-    };
-}
-
-// Extraction des articles
-function extractArticles(text) {
-    // Modifié pour correspondre au format exact du texte
-    const articleRegex = /- (.*?), Prix : (\d+,\d+) €, Marque : (.*?), Vues : (\d+), Favoris : (\d+)/g;
-    const articles = [];
-    let match;
-
-    while ((match = articleRegex.exec(text)) !== null) {
-        articles.push({
-            name: match[1].trim(),
-            price: parseFloat(match[2].replace(',', '.')),
-            brand: match[3].trim(),
-            views: parseInt(match[4]),
-            favorites: parseInt(match[5])
-        });
-    }
-
-    console.log("Articles extraits:", articles); // Debug
-    return articles;
-}
-
-// Calcul des statistiques
-function calculateStatistics(text) {
-    const articles = extractArticles(text);
+    // On garde la structure de base qui fonctionnait
     const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
+    const followers = extractNumber(text, /(\d+)\nAbonnés/);
     const sales = Math.floor(evaluations * 0.9); // Règle des -10%
 
-    // Calcul du prix moyen et du chiffre d'affaires
-    let averagePrice = 0;
-    let totalViews = 0;
-    let totalFavorites = 0;
-
-    if (articles.length > 0) {
-        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
-        averagePrice = totalPrice / articles.length;
-        totalViews = articles.reduce((sum, article) => sum + article.views, 0);
-        totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
-    }
-
-    // Calcul du taux d'engagement
-    const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
+    // On ajoute les nouvelles extractions
+    const averagePrice = calculateAveragePrice(text);
+    const engagement = calculateEngagement(text);
+    const countries = analyzeCountries(text);
 
     return {
-        financials: {
-            averagePrice: averagePrice || 0,
-            estimatedRevenue: (averagePrice * sales) || 0
+        basic: {
+            sales,
+            evaluations,
+            followers
         },
-        engagement: {
-            views: totalViews,
-            favorites: totalFavorites,
-            engagementRate: engagementRate || 0
-        }
+        financial: {
+            averagePrice: averagePrice,
+            estimatedRevenue: averagePrice * sales
+        },
+        engagement: engagement,
+        geography: countries
     };
 }
 
-function extractPattern(text, pattern) {
-    const match = text.match(pattern);
-    return match ? match[1].trim() : null;
+// Nouvelles fonctions d'analyse
+function calculateAveragePrice(text) {
+    const pricePattern = /prix : (\d+,\d+) €/g;
+    let match;
+    let total = 0;
+    let count = 0;
+
+    while ((match = pricePattern.exec(text)) !== null) {
+        total += parseFloat(match[1].replace(',', '.'));
+        count++;
+    }
+
+    return count > 0 ? total / count : 0;
 }
 
-// Debug helper
-function logExtraction(name, value) {
-    console.log(`Extraction - ${name}:`, value);
+function calculateEngagement(text) {
+    let totalViews = 0;
+    let totalFavorites = 0;
+    
+    const articlePattern = /Vues : (\d+), Favoris : (\d+)/g;
+    let match;
+
+    while ((match = articlePattern.exec(text)) !== null) {
+        totalViews += parseInt(match[1]);
+        totalFavorites += parseInt(match[2]);
+    }
+
+    return {
+        views: totalViews,
+        favorites: totalFavorites,
+        rate: totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0
+    };
+}
+
+function analyzeCountries(text) {
+    const commentPattern = /\nil y a.*?\n(.*?)\n/g;
+    const countries = { France: 0, Espagne: 0, Italie: 0 };
+    let match;
+
+    while ((match = commentPattern.exec(text)) !== null) {
+        const comment = match[1].toLowerCase();
+        if (comment.match(/gracias|perfecto|muy/)) countries.Espagne++;
+        else if (comment.match(/perfetto|tutto|bellissima/)) countries.Italie++;
+        else countries.France++;
+    }
+
+    return countries;
 }
