@@ -19,8 +19,16 @@ const chartConfig = {
 const createSalesChart = (containerId, data) => {
     const ctx = document.getElementById(containerId).getContext('2d');
     
-    const months = Object.keys(data.sales.monthly);
-    const salesData = months.map(month => data.sales.monthly[month]);
+    // Extraction des données de ventes par date à partir des commentaires
+    const salesByMonth = {};
+    data.comments.forEach(comment => {
+        const date = comment.timestamp;
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        salesByMonth[monthKey] = (salesByMonth[monthKey] || 0) + 1;
+    });
+
+    const months = Object.keys(salesByMonth).sort();
+    const salesData = months.map(month => salesByMonth[month]);
 
     return new Chart(ctx, {
         type: 'line',
@@ -51,8 +59,9 @@ const createSalesChart = (containerId, data) => {
 const createGeoChart = (containerId, data) => {
     const ctx = document.getElementById(containerId).getContext('2d');
     
-    const countries = Object.keys(data.geography.salesByCountry);
-    const salesCounts = Object.values(data.geography.salesByCountry);
+    const countryData = data.statistics.geography;
+    const countries = Object.keys(countryData);
+    const salesCounts = Object.values(countryData);
 
     return new Chart(ctx, {
         type: 'pie',
@@ -78,6 +87,7 @@ const createGeoChart = (containerId, data) => {
  */
 const createEngagementChart = (containerId, data) => {
     const ctx = document.getElementById(containerId).getContext('2d');
+    const engagement = data.statistics.engagement;
 
     return new Chart(ctx, {
         type: 'doughnut',
@@ -85,8 +95,8 @@ const createEngagementChart = (containerId, data) => {
             labels: ['Ventes', 'Vues sans achat'],
             datasets: [{
                 data: [
-                    data.sales.total,
-                    data.engagement.views - data.sales.total
+                    data.sales.totalSales,
+                    engagement.views - data.sales.totalSales
                 ],
                 backgroundColor: ['#6a11cb', '#2575fc']
             }]
@@ -101,16 +111,26 @@ const createEngagementChart = (containerId, data) => {
 const createBrandChart = (containerId, data) => {
     const ctx = document.getElementById(containerId).getContext('2d');
     
-    const topBrands = data.brands.topBrands;
-    const brands = topBrands.map(([brand]) => brand);
-    const sales = topBrands.map(([, count]) => count);
+    // Compter les articles par marque
+    const brandCounts = {};
+    data.articles.forEach(article => {
+        brandCounts[article.brand] = (brandCounts[article.brand] || 0) + 1;
+    });
+
+    // Trier les marques par nombre de ventes
+    const sortedBrands = Object.entries(brandCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5); // Top 5 marques
+
+    const brands = sortedBrands.map(([brand]) => brand);
+    const sales = sortedBrands.map(([, count]) => count);
 
     return new Chart(ctx, {
         type: 'bar',
         data: {
             labels: brands,
             datasets: [{
-                label: 'Ventes par marque',
+                label: 'Articles par marque',
                 data: sales,
                 backgroundColor: '#6a11cb'
             }]
@@ -136,10 +156,9 @@ const updateCharts = (stats) => {
     createBrandChart('brandChart', stats);
 };
 
-export {
-    updateCharts,
-    createSalesChart,
-    createGeoChart,
-    createEngagementChart,
-    createBrandChart
-};
+// Rendre les fonctions disponibles globalement plutôt qu'utiliser export
+window.updateCharts = updateCharts;
+window.createSalesChart = createSalesChart;
+window.createGeoChart = createGeoChart;
+window.createEngagementChart = createEngagementChart;
+window.createBrandChart = createBrandChart;
