@@ -5,6 +5,8 @@ function extractNumber(text, pattern) {
 }
 
 function analyzeData(text) {
+    console.log("Analyse du texte brut:", text.substring(0, 200)); // Debug
+    
     return {
         profile: extractProfileInfo(text),
         sales: extractSalesInfo(text),
@@ -54,20 +56,20 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-    const articleRegex = /(.*?), prix : (\d+,\d+) €, marque : (.*?), taille[\s\S]*?Vues : (\d+), Favoris : (\d+)/g;
+    // Nouveau pattern pour correspondre au format exact
+    const articlePattern = /prix : (\d+,\d+) €[\s\S]*?(\d+) vues[\s\S]*?(\d+) favoris/g;
     const articles = [];
     let match;
 
-    while ((match = articleRegex.exec(text)) !== null) {
+    while ((match = articlePattern.exec(text)) !== null) {
         articles.push({
-            name: match[1].trim(),
-            price: parseFloat(match[2].replace(',', '.')),
-            brand: match[3] !== 'Marque non spécifiée' ? match[3] : 'Autre',
-            views: parseInt(match[4]),
-            favorites: parseInt(match[5])
+            price: parseFloat(match[1].replace(',', '.')),
+            views: parseInt(match[2]),
+            favorites: parseInt(match[3])
         });
     }
 
+    console.log("Articles extraits:", articles); // Debug
     return articles;
 }
 
@@ -75,18 +77,25 @@ function extractArticles(text) {
 function calculateStatistics(text) {
     const articles = extractArticles(text);
     const comments = extractComments(text);
+    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
+    const sales = Math.floor(evaluations * 0.9);
 
-    // Calcul du chiffre d'affaires estimé
-    const averagePrice = articles.reduce((sum, article) => sum + article.price, 0) / articles.length;
-    const totalSales = Math.floor(extractNumber(text, /\((\d+)\)\nÉvaluations/) * 0.9);
-    const estimatedRevenue = averagePrice * totalSales;
+    // Calcul du prix moyen et du chiffre d'affaires
+    let averagePrice = 0;
+    let totalViews = 0;
+    let totalFavorites = 0;
+
+    if (articles.length > 0) {
+        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
+        averagePrice = totalPrice / articles.length;
+        totalViews = articles.reduce((sum, article) => sum + article.views, 0);
+        totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+    }
 
     // Calcul du taux d'engagement
-    const totalViews = articles.reduce((sum, article) => sum + article.views, 0);
-    const totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
-    const engagementRate = (totalFavorites / totalViews) * 100;
+    const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
 
-    // Répartition géographique des ventes
+    // Répartition géographique
     const salesByCountry = comments.reduce((acc, comment) => {
         const country = getCountryFromLanguage(comment.language);
         acc[country] = (acc[country] || 0) + 1;
@@ -95,13 +104,13 @@ function calculateStatistics(text) {
 
     return {
         financials: {
-            averagePrice,
-            estimatedRevenue
+            averagePrice: averagePrice || 0,
+            estimatedRevenue: (averagePrice * sales) || 0
         },
         engagement: {
             views: totalViews,
             favorites: totalFavorites,
-            engagementRate
+            engagementRate: engagementRate || 0
         },
         geography: salesByCountry
     };
