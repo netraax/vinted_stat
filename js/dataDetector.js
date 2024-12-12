@@ -5,6 +5,25 @@ function preprocessText(text) {
         .replace(/\s{2,}/g, " "); // Remplace les espaces multiples par un seul espace
 }
 
+// Extraction des articles avec Regex
+function extractArticles(text) {
+    const articleRegex = /(.*?)#\s(.*?)#,\sprix\s:\s([\d,]+)\s€,.*?,\staille\s:\s(.*?)\n/g;
+    const articles = [];
+    let match;
+
+    while ((match = articleRegex.exec(text)) !== null) {
+        articles.push({
+            name: match[2]?.trim(),
+            price: parseFloat(match[3]?.replace(',', '.') || 0),
+            brand: match[4]?.trim() || 'Marque non spécifiée',
+            size: match[5]?.trim() || 'Taille non spécifiée',
+        });
+    }
+
+    console.log("Articles extraits :", articles);
+    return articles;
+}
+
 // Extraction des articles sans Regex avec vérifications
 function extractArticlesNoRegex(text) {
     const lines = text.split("\n");
@@ -37,7 +56,7 @@ function extractArticlesNoRegex(text) {
 
 // Calcul des statistiques avec validations
 function calculateStatistics(text) {
-    const articles = extractArticlesNoRegex(text);
+    const articles = extractArticles(text);
 
     // Vérifiez s'il y a des articles valides
     if (articles.length === 0) {
@@ -84,7 +103,7 @@ function calculateStatistics(text) {
 // Exemple d'analyse des données
 function analyzeData(text) {
     const preprocessedText = preprocessText(text);
-    const articles = extractArticlesNoRegex(preprocessedText);
+    const articles = extractArticles(preprocessedText);
     const statistics = calculateStatistics(preprocessedText);
 
     console.log("Statistiques calculées :", statistics);
