@@ -75,6 +75,7 @@ function updateEngagementStats(data) {
 
 // Fonctions utilitaires de formatage
 function formatCurrency(amount) {
+    if (isNaN(amount)) return "€ 0,00";
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
         currency: 'EUR'
@@ -82,6 +83,7 @@ function formatCurrency(amount) {
 }
 
 function formatPercent(value) {
+    if (isNaN(value)) return "0%";
     return new Intl.NumberFormat('fr-FR', {
         style: 'percent',
         minimumFractionDigits: 1,
