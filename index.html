@@ -10,16 +10,29 @@
     <div class="container mt-5">
         <h1>Vinted Stats</h1>
         
+        <!-- Zone de saisie -->
         <div class="card mb-4">
             <div class="card-body">
-                <textarea id="inputData" class="form-control mb-3" rows="6"></textarea>
+                <textarea id="inputData" class="form-control mb-3" rows="6" 
+                    placeholder="Collez ici le contenu de votre profil Vinted..."></textarea>
                 <button id="analyzeBtn" class="btn btn-primary">Analyser</button>
             </div>
         </div>
 
+        <!-- Tableau de bord -->
         <div id="dashboard" style="display: none;">
-            <div class="row">
-                <div class="col-md-4">
+            <!-- Informations de profil -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Profil</h5>
+                    <p>Utilisateur : <span id="username">-</span></p>
+                    <p>Localisation : <span id="location">-</span></p>
+                </div>
+            </div>
+
+            <!-- Statistiques principales -->
+            <div class="row mb-4">
+                <div class="col-md-3">
                     <div class="card">
                         <div class="card-body">
                             <h5>Nombre de ventes</h5>
@@ -27,7 +40,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card">
                         <div class="card-body">
                             <h5>Évaluations</h5>
@@ -35,11 +48,59 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card">
                         <div class="card-body">
                             <h5>Abonnés</h5>
                             <p id="followers" class="h3">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Taux d'engagement</h5>
+                            <p id="engagementRate" class="h3">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques financières -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Prix moyen des articles</h5>
+                            <p id="averagePrice" class="h3">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Chiffre d'affaires estimé</h5>
+                            <p id="estimatedRevenue" class="h3">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques d'engagement -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Vues totales</h5>
+                            <p id="totalViews" class="h3">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Favoris totaux</h5>
+                            <p id="totalFavorites" class="h3">-</p>
                         </div>
                     </div>
                 </div>
