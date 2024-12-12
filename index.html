@@ -3,172 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinted Stats Dashboard</title>
+    <title>Test Vinted Stats</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- En-tête -->
-        <div class="row mt-4 mb-4">
-            <div class="col-12 text-center">
-                <h1 class="gradient-text">Analyse Vinted</h1>
+    <div class="container mt-5">
+        <h1>Test Vinted Stats</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <textarea id="inputData" class="form-control mb-3" rows="6"></textarea>
+                <button id="analyzeBtn" class="btn btn-primary">Analyser</button>
             </div>
         </div>
 
-        <!-- Zone de saisie -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Entrez vos données</h5>
-                        <textarea class="form-control" id="inputData" rows="6" 
-                            placeholder="Collez ici le contenu de votre profil Vinted..."></textarea>
-                        <button class="btn btn-primary mt-3" id="analyzeBtn">Analyser</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tableau de bord -->
-        <div id="dashboard" class="row" style="display: none;">
-            <!-- Statistiques principales -->
-            <div class="col-12 mb-4">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h6 class="card-subtitle mb-2">Ventes totales</h6>
-                                <h3 class="gradient-text" id="totalSales">-</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h6 class="card-subtitle mb-2">Chiffre d'affaires</h6>
-                                <h3 class="gradient-text" id="totalRevenue">-</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h6 class="card-subtitle mb-2">Prix moyen</h6>
-                                <h3 class="gradient-text" id="averagePrice">-</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h6 class="card-subtitle mb-2">Taux d'engagement</h6>
-                                <h3 class="gradient-text" id="engagementRate">-</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Onglets -->
-            <div class="col-12">
-                <ul class="nav nav-tabs mb-4" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#salesTab">Ventes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#engagementTab">Engagement</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#geoTab">Géographie</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#brandsTab">Marques</a>
-                    </li>
-                </ul>
-
-                <div class="tab-content">
-                    <!-- Onglet Ventes -->
-                    <div class="tab-pane fade show active" id="salesTab">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Évolution des ventes</h5>
-                                <div class="chart-container">
-                                    <canvas id="salesChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Engagement -->
-                    <div class="tab-pane fade" id="engagementTab">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Taux d'engagement</h5>
-                                <div class="chart-container">
-                                    <canvas id="engagementChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Géographie -->
-                    <div class="tab-pane fade" id="geoTab">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Répartition géographique</h5>
-                                <div class="chart-container">
-                                    <canvas id="geoChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Marques -->
-                    <div class="tab-pane fade" id="brandsTab">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Ventes par marque</h5>
-                                <div class="chart-container">
-                                    <canvas id="brandChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div id="dashboard" style="display: none;" class="mt-3">
+            <div class="alert alert-success">
+                Dashboard visible !
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM chargé");
-            
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const inputData = document.getElementById('inputData');
-            const dashboard = document.getElementById('dashboard');
+        window.onload = function() {
+            const btn = document.getElementById('analyzeBtn');
+            const input = document.getElementById('inputData');
+            const dash = document.getElementById('dashboard');
 
-            analyzeBtn.addEventListener('click', function() {
-                console.log("Bouton cliqué");
-                
-                const rawData = inputData.value;
-                console.log("Données brutes:", rawData);
-
-                // Test simple de parsing
-                try {
-                    // Test de base
-                    if (rawData.includes("Vinted")) {
-                        console.log("Texte Vinted détecté");
-                        dashboard.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error("Erreur:", error);
+            btn.onclick = function() {
+                alert('Bouton cliqué!');
+                if(input.value.length > 0) {
+                    dash.style.display = 'block';
                 }
-            });
-        });
+            };
+        };
     </script>
 </body>
 </html>
