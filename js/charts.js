@@ -13,6 +13,15 @@ const chartConfig = {
     }
 };
 
+// Palette de couleurs Vinted
+const vintedColors = {
+    primary: '#09B1BA',      // Bleu-vert Vinted
+    secondary: '#007782',    // Bleu-vert foncé
+    accent: '#FFBA49',       // Orange/Jaune
+    light: '#CCF2F6',       // Bleu-vert clair
+    neutral: '#999999'       // Gris
+};
+
 /**
  * Crée le graphique d'évolution des ventes
  */
@@ -37,8 +46,8 @@ const createSalesChart = (containerId, data) => {
             datasets: [{
                 label: 'Ventes mensuelles',
                 data: salesData,
-                borderColor: '#6a11cb',
-                backgroundColor: 'rgba(106, 17, 203, 0.2)',
+                borderColor: vintedColors.primary,
+                backgroundColor: vintedColors.light,
                 tension: 0.4
             }]
         },
@@ -62,6 +71,7 @@ const createGeoChart = (containerId, data) => {
     const countryData = data.statistics.geography;
     const countries = Object.keys(countryData);
     const salesCounts = Object.values(countryData);
+    const total = salesCounts.reduce((a, b) => a + b, 0);
 
     return new Chart(ctx, {
         type: 'pie',
@@ -70,15 +80,30 @@ const createGeoChart = (containerId, data) => {
             datasets: [{
                 data: salesCounts,
                 backgroundColor: [
-                    '#6a11cb',
-                    '#2575fc',
-                    '#42a5f5',
-                    '#ff6384',
-                    '#ffcd56'
+                    vintedColors.primary,
+                    vintedColors.secondary,
+                    vintedColors.accent,
+                    vintedColors.light
                 ]
             }]
         },
-        options: chartConfig
+        options: {
+            ...chartConfig,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        generateLabels: (chart) => {
+                            const data = chart.data;
+                            return data.labels.map((label, i) => ({
+                                text: `${label} (${((data.datasets[0].data[i] / total) * 100).toFixed(1)}%)`,
+                                fillStyle: data.datasets[0].backgroundColor[i]
+                            }));
+                        }
+                    }
+                }
+            }
+        }
     });
 };
 
@@ -92,16 +117,33 @@ const createEngagementChart = (containerId, data) => {
     return new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Ventes', 'Vues sans achat'],
+            labels: ['Favoris', 'Vues'],
             datasets: [{
                 data: [
-                    data.sales.totalSales,
-                    engagement.views - data.sales.totalSales
+                    engagement.favorites,
+                    engagement.views
                 ],
-                backgroundColor: ['#6a11cb', '#2575fc']
+                backgroundColor: [vintedColors.primary, vintedColors.light]
             }]
         },
-        options: chartConfig
+        options: {
+            ...chartConfig,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        generateLabels: (chart) => {
+                            const data = chart.data;
+                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            return data.labels.map((label, i) => ({
+                                text: `${label} (${((data.datasets[0].data[i] / total) * 100).toFixed(1)}%)`,
+                                fillStyle: data.datasets[0].backgroundColor[i]
+                            }));
+                        }
+                    }
+                }
+            }
+        }
     });
 };
 
@@ -120,7 +162,7 @@ const createBrandChart = (containerId, data) => {
     // Trier les marques par nombre de ventes
     const sortedBrands = Object.entries(brandCounts)
         .sort(([,a], [,b]) => b - a)
-        .slice(0, 5); // Top 5 marques
+        .slice(0, 5);
 
     const brands = sortedBrands.map(([brand]) => brand);
     const sales = sortedBrands.map(([, count]) => count);
@@ -132,12 +174,21 @@ const createBrandChart = (containerId, data) => {
             datasets: [{
                 label: 'Articles par marque',
                 data: sales,
-                backgroundColor: '#6a11cb'
+                backgroundColor: vintedColors.primary,
+                hoverBackgroundColor: vintedColors.secondary
             }]
         },
         options: {
             ...chartConfig,
             scales: {
+                x: {
+                    display: true,
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
                 y: {
                     beginAtZero: true
                 }
@@ -156,7 +207,7 @@ const updateCharts = (stats) => {
     createBrandChart('brandChart', stats);
 };
 
-// Rendre les fonctions disponibles globalement plutôt qu'utiliser export
+// Rendre les fonctions disponibles globalement
 window.updateCharts = updateCharts;
 window.createSalesChart = createSalesChart;
 window.createGeoChart = createGeoChart;
