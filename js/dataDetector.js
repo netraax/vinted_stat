@@ -56,34 +56,60 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-    // Pattern simplifié : capture uniquement entre "prix :" et "taille"
-    const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille/g;
+    // D'abord capture l'ensemble "prix -> taille" plus les vues et favoris qui suivent
+    const articlePattern = /prix : (\d+,\d+) €, marque : (.*?), taille[\s\S]*?(\d+) vues[\s\S]*?(\d+) favoris/g;
     const articles = [];
     let match;
 
     while ((match = articlePattern.exec(text)) !== null) {
         const price = parseFloat(match[1].replace(',', '.'));
         const brand = match[2].trim();
+        const views = parseInt(match[3]);
+        const favorites = parseInt(match[4]);
         
-        // Vérification pour éviter les valeurs invalides
-        if (!isNaN(price) && brand) {
+        // Vérification des valeurs avant ajout
+        if (!isNaN(price) && brand && !isNaN(views) && !isNaN(favorites)) {
             articles.push({
                 price: price,
-                brand: brand
+                brand: brand,
+                views: views,
+                favorites: favorites
             });
         }
     }
 
-    console.log("Articles extraits (nouveau pattern):", articles);
+    console.log("Articles extraits (avec vues et favoris):", articles);
     return articles;
 }
 
 // Calcul des statistiques
 function calculateStatistics(text) {
-   const articles = extractArticles(text);
-   const comments = extractComments(text);
-   const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
-   const sales = Math.floor(evaluations * 0.9);
+    const articles = extractArticles(text);
+    const sales = Math.floor(extractNumber(text, /\((\d+)\)\nÉvaluations/) * 0.9);
+
+    let averagePrice = 0;
+    let totalViews = 0;
+    let totalFavorites = 0;
+
+    if (articles.length > 0) {
+        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
+        averagePrice = totalPrice / articles.length;
+        totalViews = articles.reduce((sum, article) => sum + article.views, 0);
+        totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+    }
+
+    return {
+        financials: {
+            averagePrice: averagePrice || 0,
+            estimatedRevenue: averagePrice * sales // Cette ligne calcule le chiffre d'affaires
+        },
+        engagement: {
+            views: totalViews,
+            favorites: totalFavorites,
+            engagementRate: totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0
+        }
+    };
+}
 
    // Calcul du prix moyen et des totaux
    let averagePrice = 0;
