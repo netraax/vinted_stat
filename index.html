@@ -47,42 +47,12 @@
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="js/dataDetector.js"></script>
+    <script src="js/dashboard.js"></script>
     <script>
         window.onload = function() {
-            const btn = document.getElementById('analyzeBtn');
-            const input = document.getElementById('inputData');
-            const dash = document.getElementById('dashboard');
-
-            function extractNumber(text, pattern) {
-                const match = text.match(pattern);
-                return match ? parseInt(match[1]) : 0;
-            }
-
-            function analyzeData(text) {
-                // Extraction basique des données
-                const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
-                const followers = extractNumber(text, /(\d+)\nAbonnés/);
-                const sales = Math.floor(evaluations * 0.9); // Règle des -10%
-
-                // Mise à jour du dashboard
-                document.getElementById('salesCount').textContent = sales;
-                document.getElementById('evaluations').textContent = evaluations;
-                document.getElementById('followers').textContent = followers;
-
-                return { sales, evaluations, followers };
-            }
-
-            btn.onclick = function() {
-                const text = input.value;
-                if(text.length > 0) {
-                    console.log("Analyse des données...");
-                    const stats = analyzeData(text);
-                    console.log("Statistiques:", stats);
-                    dash.style.display = 'block';
-                } else {
-                    alert('Veuillez entrer des données à analyser');
-                }
-            };
+            initDashboard();
         };
     </script>
 </body>
