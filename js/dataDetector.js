@@ -1,126 +1,149 @@
-// Pré-traitement du texte
-function preprocessText(text) {
-    return text
-        .replace(/[\t\r]/g, "") // Supprime les tabulations et retours chariot
-        .replace(/\s{2,}/g, " "); // Remplace les espaces multiples par un seul espace
+// Fonctions d'extraction des données
+function extractNumber(text, pattern) {
+    const match = text.match(pattern);
+    return match ? parseInt(match[1]) : 0;
 }
 
-// Extraction des articles avec Regex
+function analyzeData(text) {
+    return {
+        profile: extractProfileInfo(text),
+        sales: extractSalesInfo(text),
+        comments: extractComments(text),
+        articles: extractArticles(text),
+        statistics: calculateStatistics(text)
+    };
+}
+
+// Extraction des informations du profil
+function extractProfileInfo(text) {
+    return {
+        username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/),
+        location: extractPattern(text, /À propos :\n(.*?),\sFrance/),
+        followers: extractNumber(text, /(\d+)\nAbonnés/),
+        evaluations: extractNumber(text, /\((\d+)\)\nÉvaluations/)
+    };
+}
+
+// Extraction des informations de vente
+function extractSalesInfo(text) {
+    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
+    return {
+        totalSales: Math.floor(evaluations * 0.9), // Règle des -10%
+        totalEvaluations: evaluations
+    };
+}
+
+// Extraction et analyse des commentaires
+function extractComments(text) {
+    const commentRegex = /([a-zA-Z0-9_]+)\nil y a (.*?)\n(.*?)\n/g;
+    const comments = [];
+    let match;
+
+    while ((match = commentRegex.exec(text)) !== null) {
+        comments.push({
+            username: match[1],
+            date: match[2],
+            content: match[3],
+            language: detectLanguage(match[3]),
+            timestamp: parseDate(match[2])
+        });
+    }
+
+    return comments;
+}
+
+// Extraction des articles
 function extractArticles(text) {
-    const articleRegex = /(.*?)#\s(.*?)#,\sprix\s:\s([\d,]+)\s€,.*?,\staille\s:\s(.*?)\n/g;
+    const articleRegex = /(.*?), prix : (\d+,\d+) €, marque : (.*?), taille[\s\S]*?Vues : (\d+), Favoris : (\d+)/g;
     const articles = [];
     let match;
 
     while ((match = articleRegex.exec(text)) !== null) {
         articles.push({
-            name: match[2]?.trim(),
-            price: parseFloat(match[3]?.replace(',', '.') || 0),
-            brand: match[4]?.trim() || 'Marque non spécifiée',
-            size: match[5]?.trim() || 'Taille non spécifiée',
+            name: match[1].trim(),
+            price: parseFloat(match[2].replace(',', '.')),
+            brand: match[3] !== 'Marque non spécifiée' ? match[3] : 'Autre',
+            views: parseInt(match[4]),
+            favorites: parseInt(match[5])
         });
     }
 
-    console.log("Articles extraits :", articles);
     return articles;
 }
 
-// Extraction des articles sans Regex avec vérifications
-function extractArticlesNoRegex(text) {
-    const lines = text.split("\n");
-    const articles = [];
-    let currentArticle = {};
-
-    lines.forEach(line => {
-        if (line.includes("prix :")) {
-            const parts = line.split(", ");
-            try {
-                currentArticle.name = parts[0].split("#")[1]?.trim();
-                currentArticle.price = parseFloat(parts[1].split(" : ")[1]?.replace(",", "."));
-                currentArticle.brand = parts[2].split(" : ")[1]?.trim() || "Marque non spécifiée";
-                currentArticle.size = parts[3].split(" : ")[1]?.trim() || "Taille non spécifiée";
-
-                // Vérifiez si les champs sont valides avant d'ajouter l'article
-                if (!isNaN(currentArticle.price)) {
-                    articles.push(currentArticle);
-                }
-                currentArticle = {};
-            } catch (error) {
-                console.error("Erreur lors de l'extraction des données de l'article :", error);
-            }
-        }
-    });
-
-    console.log("Articles extraits :", articles);
-    return articles;
-}
-
-// Calcul des statistiques avec validations
+// Calcul des statistiques
 function calculateStatistics(text) {
     const articles = extractArticles(text);
-
-    // Vérifiez s'il y a des articles valides
-    if (articles.length === 0) {
-        console.log("Aucun article trouvé.");
-        return {
-            financials: {
-                averagePrice: 0,
-                estimatedRevenue: 0
-            },
-            engagement: {
-                views: 0,
-                favorites: 0,
-                engagementRate: 0
-            },
-            geography: {}
-        };
-    }
-
-    // Calcul du prix moyen
-    const totalPrices = articles.reduce((sum, article) => sum + (article.price || 0), 0);
-    const averagePrice = articles.length > 0 ? totalPrices / articles.length : 0;
-
-    console.log("Total des prix capturés :", totalPrices);
-    console.log("Prix moyen calculé :", averagePrice);
+    const comments = extractComments(text);
 
     // Calcul du chiffre d'affaires estimé
-    const totalSales = Math.floor(articles.length * 0.9); // Exemple d'estimation
+    const averagePrice = articles.reduce((sum, article) => sum + article.price, 0) / articles.length;
+    const totalSales = Math.floor(extractNumber(text, /\((\d+)\)\nÉvaluations/) * 0.9);
     const estimatedRevenue = averagePrice * totalSales;
+
+    // Calcul du taux d'engagement
+    const totalViews = articles.reduce((sum, article) => sum + article.views, 0);
+    const totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+    const engagementRate = (totalFavorites / totalViews) * 100;
+
+    // Répartition géographique des ventes
+    const salesByCountry = comments.reduce((acc, comment) => {
+        const country = getCountryFromLanguage(comment.language);
+        acc[country] = (acc[country] || 0) + 1;
+        return acc;
+    }, {});
 
     return {
         financials: {
-            averagePrice: averagePrice.toFixed(2), // Deux décimales
-            estimatedRevenue: estimatedRevenue.toFixed(2)
+            averagePrice,
+            estimatedRevenue
         },
         engagement: {
-            views: 0, // Toujours 0, car non disponible
-            favorites: 0,
-            engagementRate: 0
+            views: totalViews,
+            favorites: totalFavorites,
+            engagementRate
         },
-        geography: {}
+        geography: salesByCountry
     };
 }
 
-// Exemple d'analyse des données
-function analyzeData(text) {
-    const preprocessedText = preprocessText(text);
-    const articles = extractArticles(preprocessedText);
-    const statistics = calculateStatistics(preprocessedText);
-
-    console.log("Statistiques calculées :", statistics);
-    return {
-        articles,
-        statistics
-    };
+// Fonctions utilitaires
+function parseDate(timeAgo) {
+    const now = new Date();
+    if (timeAgo.includes('minute')) return new Date(now - parseInt(timeAgo) * 60000);
+    if (timeAgo.includes('heure')) return new Date(now - parseInt(timeAgo) * 3600000);
+    if (timeAgo.includes('jour')) return new Date(now - parseInt(timeAgo) * 86400000);
+    if (timeAgo.includes('semaine')) return new Date(now - parseInt(timeAgo) * 604800000);
+    if (timeAgo.includes('mois')) return new Date(now - parseInt(timeAgo) * 2592000000);
+    return now;
 }
 
-// Exemple d'utilisation
-const exampleText = `
-Nintendo Wii # Mario Kart #, prix : 24,90 €, marque : Nintendo, taille : Standard
-Très bon état
+function detectLanguage(text) {
+    const languages = {
+        fr: ['merci', 'bonjour', 'parfait', 'rapide'],
+        it: ['perfetto', 'grazie', 'tutto'],
+        en: ['perfect', 'thank', 'good'],
+        es: ['gracias', 'perfecto', 'bien']
+    };
 
-Nintendo Wii # Zelda #, prix : 19,90 €, marque : Nintendo, taille : Standard
-Très bon état
-`;
+    text = text.toLowerCase();
+    for (const [lang, words] of Object.entries(languages)) {
+        if (words.some(word => text.includes(word))) return lang;
+    }
+    return 'fr'; // par défaut
+}
 
-const analysis = analyzeData(exampleText);
-console.log("Résultats de l'analyse :", analysis);
+function getCountryFromLanguage(language) {
+    const mapping = {
+        fr: 'France',
+        it: 'Italie',
+        en: 'Royaume-Uni',
+        es: 'Espagne'
+    };
+    return mapping[language] || 'France';
+}
+
+function extractPattern(text, pattern) {
+    const match = text.match(pattern);
+    return match ? match[1] : null;
+}
