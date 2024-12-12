@@ -9,21 +9,149 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- [Le reste du HTML reste identique jusqu'aux scripts] -->
+    <div class="container">
+        <!-- En-tête -->
+        <div class="row mt-4 mb-4">
+            <div class="col-12 text-center">
+                <h1 class="gradient-text">Analyse Vinted</h1>
+            </div>
+        </div>
+
+        <!-- Zone de saisie -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Entrez vos données</h5>
+                        <textarea class="form-control" id="inputData" rows="6" 
+                            placeholder="Collez ici le contenu de votre profil Vinted..."></textarea>
+                        <button class="btn btn-primary mt-3" id="analyzeBtn">Analyser</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau de bord -->
+        <div id="dashboard" class="row" style="display: none;">
+            <!-- Statistiques principales -->
+            <div class="col-12 mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-subtitle mb-2">Ventes totales</h6>
+                                <h3 class="gradient-text" id="totalSales">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-subtitle mb-2">Chiffre d'affaires</h6>
+                                <h3 class="gradient-text" id="totalRevenue">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-subtitle mb-2">Prix moyen</h6>
+                                <h3 class="gradient-text" id="averagePrice">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-subtitle mb-2">Taux d'engagement</h6>
+                                <h3 class="gradient-text" id="engagementRate">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglets -->
+            <div class="col-12">
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#salesTab">Ventes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#engagementTab">Engagement</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#geoTab">Géographie</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#brandsTab">Marques</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Onglet Ventes -->
+                    <div class="tab-pane fade show active" id="salesTab">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Évolution des ventes</h5>
+                                <div class="chart-container">
+                                    <canvas id="salesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Engagement -->
+                    <div class="tab-pane fade" id="engagementTab">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Taux d'engagement</h5>
+                                <div class="chart-container">
+                                    <canvas id="engagementChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Géographie -->
+                    <div class="tab-pane fade" id="geoTab">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Répartition géographique</h5>
+                                <div class="chart-container">
+                                    <canvas id="geoChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Marques -->
+                    <div class="tab-pane fade" id="brandsTab">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Ventes par marque</h5>
+                                <div class="chart-container">
+                                    <canvas id="brandChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fonctions de parsing
+        // Fonctions de parsing des données
         function parseVintedData(text) {
-            const data = {
+            return {
                 profile: extractProfileInfo(text),
                 sales: extractSalesInfo(text),
                 comments: extractComments(text),
                 articles: extractArticles(text)
             };
-            console.log("Données parsées:", data);
-            return data;
         }
 
         function extractProfileInfo(text) {
@@ -31,17 +159,14 @@
                 username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/),
                 location: extractPattern(text, /À propos :\n(.*?),\sFrance/),
                 followers: parseInt(extractPattern(text, /(\d+)\nAbonnés/) || '0'),
-                rating: parseFloat(extractPattern(text, /(\d+\.\d+)\n\(\d+\)/) || '0'),
                 evaluations: parseInt(extractPattern(text, /\((\d+)\)\nÉvaluations/) || '0')
             };
         }
 
         function extractSalesInfo(text) {
             const totalEvaluations = parseInt(extractPattern(text, /\((\d+)\)\nÉvaluations/) || '0');
-            const actualSales = Math.floor(totalEvaluations * 0.9); // Règle des -10%
             return {
-                totalSales: actualSales,
-                evaluations: totalEvaluations
+                totalSales: Math.floor(totalEvaluations * 0.9) // -10% règle
             };
         }
 
@@ -78,44 +203,20 @@
             return match ? match[1] : null;
         }
 
-        // Fonctions de visualisation
+        // Mise à jour du tableau de bord
         function updateDashboard(data) {
+            console.log("Mise à jour du dashboard avec:", data);
+            
             // Mise à jour des statistiques principales
             document.getElementById('totalSales').textContent = data.sales.totalSales;
-            
-            // Calcul et affichage du chiffre d'affaires
-            const revenue = calculateRevenue(data.articles);
-            document.getElementById('totalRevenue').textContent = formatCurrency(revenue);
-            
-            // Calcul et affichage du prix moyen
-            const avgPrice = revenue / data.sales.totalSales;
-            document.getElementById('averagePrice').textContent = formatCurrency(avgPrice);
-            
-            // Créer les graphiques
-            createCharts(data);
+            updateCharts(data);
         }
 
-        function calculateRevenue(articles) {
-            return articles.reduce((sum, article) => sum + article.price, 0);
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        }
-
-        function createCharts(data) {
-            // Création des graphiques avec Chart.js
-            createSalesChart('salesChart', data);
-            createEngagementChart('engagementChart', data);
-            // Ajoutez d'autres graphiques ici
-        }
-
-        function createSalesChart(canvasId, data) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
+        // Gestion des graphiques
+        function updateCharts(data) {
+            // Graphique des ventes
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
@@ -135,11 +236,13 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("Application initialisée");
             const analyzeBtn = document.getElementById('analyzeBtn');
             const inputData = document.getElementById('inputData');
             const dashboard = document.getElementById('dashboard');
 
             analyzeBtn.addEventListener('click', () => {
+                console.log("Bouton cliqué");
                 const rawData = inputData.value.trim();
                 if (!rawData) {
                     alert('Veuillez entrer des données à analyser');
@@ -148,6 +251,7 @@
 
                 try {
                     const parsedData = parseVintedData(rawData);
+                    console.log("Données parsées:", parsedData);
                     updateDashboard(parsedData);
                     dashboard.style.display = 'block';
                 } catch (error) {
