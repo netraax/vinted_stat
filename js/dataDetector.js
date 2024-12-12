@@ -5,51 +5,88 @@ function extractNumber(text, pattern) {
 }
 
 function analyzeData(text) {
-    // Extraction basique des données qui fonctionne
-    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
-    const followers = extractNumber(text, /(\d+)\nAbonnés/);
-    const sales = Math.floor(evaluations * 0.9); // Règle des -10%
-
-    // Nouvelle extraction des articles avec prix, vues, favoris
-    const articles = extractArticles(text);
-    const stats = calculateArticleStats(articles, sales);
-
+    console.log("Analyse du texte brut:", text.substring(0, 200)); // Debug
+    
     return {
-        basic: { sales, evaluations, followers },
-        articles: articles,
-        statistics: stats
+        profile: extractProfileInfo(text),
+        sales: extractSalesInfo(text),
+        comments: extractComments(text),
+        articles: extractArticles(text),
+        statistics: calculateStatistics(text)
     };
 }
 
+// Extraction des informations du profil
+function extractProfileInfo(text) {
+    return {
+        username: extractPattern(text, /([A-Za-z0-9_]+)\nÀ propos/) || extractPattern(text, /Utilisateur : (.*)/),
+        location: extractPattern(text, /Localisation : (.*)/),
+        followers: extractNumber(text, /(\d+)\nAbonnés/),
+        evaluations: extractNumber(text, /\((\d+)\)\nÉvaluations/)
+    };
+}
+
+// Extraction des articles
 function extractArticles(text) {
+    // Modifié pour correspondre au format exact du texte
+    const articleRegex = /- (.*?), Prix : (\d+,\d+) €, Marque : (.*?), Vues : (\d+), Favoris : (\d+)/g;
     const articles = [];
-    // Pattern pour matcher le format exact de vos données
-    const pattern = /.*?, prix : (\d+,\d+) €, marque : (.*?), taille/g;
     let match;
 
-    while ((match = pattern.exec(text)) !== null) {
+    while ((match = articleRegex.exec(text)) !== null) {
         articles.push({
-            price: parseFloat(match[1].replace(',', '.')),
-            brand: match[2].trim(),
+            name: match[1].trim(),
+            price: parseFloat(match[2].replace(',', '.')),
+            brand: match[3].trim(),
+            views: parseInt(match[4]),
+            favorites: parseInt(match[5])
         });
     }
 
+    console.log("Articles extraits:", articles); // Debug
     return articles;
 }
 
-function calculateArticleStats(articles, totalSales) {
-    // Calcul du prix moyen
-    let totalPrice = 0;
-    articles.forEach(article => {
-        totalPrice += article.price;
-    });
+// Calcul des statistiques
+function calculateStatistics(text) {
+    const articles = extractArticles(text);
+    const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
+    const sales = Math.floor(evaluations * 0.9); // Règle des -10%
 
-    const averagePrice = articles.length > 0 ? totalPrice / articles.length : 0;
-    const estimatedRevenue = averagePrice * totalSales;
+    // Calcul du prix moyen et du chiffre d'affaires
+    let averagePrice = 0;
+    let totalViews = 0;
+    let totalFavorites = 0;
+
+    if (articles.length > 0) {
+        const totalPrice = articles.reduce((sum, article) => sum + article.price, 0);
+        averagePrice = totalPrice / articles.length;
+        totalViews = articles.reduce((sum, article) => sum + article.views, 0);
+        totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
+    }
+
+    // Calcul du taux d'engagement
+    const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
 
     return {
-        averagePrice: averagePrice,
-        totalRevenue: estimatedRevenue,
-        totalArticles: articles.length
+        financials: {
+            averagePrice: averagePrice || 0,
+            estimatedRevenue: (averagePrice * sales) || 0
+        },
+        engagement: {
+            views: totalViews,
+            favorites: totalFavorites,
+            engagementRate: engagementRate || 0
+        }
     };
+}
+
+function extractPattern(text, pattern) {
+    const match = text.match(pattern);
+    return match ? match[1].trim() : null;
+}
+
+// Debug helper
+function logExtraction(name, value) {
+    console.log(`Extraction - ${name}:`, value);
 }
