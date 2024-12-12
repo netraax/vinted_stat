@@ -19,10 +19,8 @@
         
         <!-- Zone de saisie -->
         <div class="card mb-4">
-            <div class="card-body">
-                <textarea id="inputData" class="form-control mb-3" rows="6" 
-                    placeholder="Collez ici le contenu de votre profil Vinted..."></textarea>
-                <button id="analyzeBtn" class="btn btn-primary">Analyser</button>
+            
+                <button id="newSearchBtn" class="btn btn-secondary mt-3" onclick="location.reload()">Nouvelle recherche</button>
             </div>
         </div>
 
@@ -30,10 +28,8 @@
         <div id="dashboard" style="display: none;">
             <!-- Informations de profil -->
             <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Profil</h5>
-                    <p>Utilisateur : <span id="username">-</span></p>
-                    <p>Localisation : <span id="location">-</span></p>
+                
+                    <p>Note : <span id="rating">-</span></p>
                 </div>
             </div>
 
