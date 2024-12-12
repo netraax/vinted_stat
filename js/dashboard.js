@@ -36,8 +36,15 @@ function updateBaseStats(data) {
         document.getElementById('followers').textContent = data.profile?.followers || 0;
 
         // Ajout du username et de la localisation
-        document.getElementById('username').textContent = data.profile?.username || "-";
-        document.getElementById('location').textContent = data.profile?.location || "-";
+        if (data.profile?.username) {
+            document.getElementById('username').textContent = data.profile.username;
+        }
+        document.getElementById('location').textContent = 'France';
+
+        // Ajout de l'affichage de la note avec étoiles
+        if (data.profile?.rating) {
+            document.getElementById('rating').innerHTML = displayRating(data.profile.rating);
+        }
 
         console.log("Mise à jour des stats de base réussie.");
     } catch (error) {
