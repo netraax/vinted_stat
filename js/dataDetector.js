@@ -56,7 +56,7 @@ function extractComments(text) {
 
 // Extraction des articles
 function extractArticles(text) {
-    // Nouveau pattern pour correspondre au format exact
+    // Nouveau pattern pour extraire les vues et favoris
     const articlePattern = /prix : (\d+,\d+) €[\s\S]*?(\d+) vues[\s\S]*?(\d+) favoris/g;
     const articles = [];
     let match;
@@ -80,7 +80,7 @@ function calculateStatistics(text) {
     const evaluations = extractNumber(text, /\((\d+)\)\nÉvaluations/);
     const sales = Math.floor(evaluations * 0.9);
 
-    // Calcul du prix moyen et du chiffre d'affaires
+    // Calcul du prix moyen et des totaux
     let averagePrice = 0;
     let totalViews = 0;
     let totalFavorites = 0;
@@ -92,7 +92,7 @@ function calculateStatistics(text) {
         totalFavorites = articles.reduce((sum, article) => sum + article.favorites, 0);
     }
 
-    // Calcul du taux d'engagement
+    // Nouveau calcul du taux d'engagement (favoris/vues)
     const engagementRate = totalViews > 0 ? (totalFavorites / totalViews) * 100 : 0;
 
     // Répartition géographique
@@ -110,7 +110,7 @@ function calculateStatistics(text) {
         engagement: {
             views: totalViews,
             favorites: totalFavorites,
-            engagementRate: engagementRate || 0
+            engagementRate: engagementRate
         },
         geography: salesByCountry
     };
@@ -129,10 +129,10 @@ function parseDate(timeAgo) {
 
 function detectLanguage(text) {
     const languages = {
-        fr: ['merci', 'bonjour', 'parfait', 'rapide'],
-        it: ['perfetto', 'grazie', 'tutto'],
-        en: ['perfect', 'thank', 'good'],
-        es: ['gracias', 'perfecto', 'bien']
+        fr: ['merci', 'bonjour', 'parfait', 'rapide', 'bien', 'reçu', 'conforme'],
+        it: ['perfetto', 'grazie', 'tutto', 'bellissima', 'ottimo'],
+        en: ['perfect', 'thank', 'good', 'great', 'received', 'amazing'],
+        es: ['gracias', 'perfecto', 'bien', 'muy', 'todo', 'mejor']
     };
 
     text = text.toLowerCase();
